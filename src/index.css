@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --navbar-height: 4rem;
+    --sidebar-width: 12rem;
+    --small-padding: 1rem;
+    --navbar-height-plus-small-padding: calc(var(--navbar-height) + var(--small-padding));
+    --typing-message-wrapper-height: 4rem;
+}
+
+@layer base {
+    .scollbar-style {
+        @apply [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:rounded-full
+    }
+}
