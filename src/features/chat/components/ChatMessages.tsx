@@ -1,11 +1,15 @@
 import { Space } from "antd";
-import React from "react";
-import ChatRow from "./ChatRow";
+import React, { use, useEffect } from "react";
 import { Message } from "../../../types/message/Message";
 import { MediaObject } from "@/types/shared/MediaObject";
+import ChatRow from "./ChatRow";
+import { useUserContext } from "@/context/useUserContext";
 const mockMessages: Message[] = Array.from({ length: 10 }, (_, index) => ({
   Id: `message-${index + 1}`,
-  SenderId: `user-${(index % 3) + 1}`,
+  SenderId:
+    index % 2 == 1
+      ? `user-${(index % 3) + 1}`
+      : "c28ab02a-73a5-4614-a822-e34054b04051",
   GroupId: "group-1",
   Content: `This is a mock message ${index + 1}`,
   ReferenceId: null,
@@ -35,12 +39,28 @@ mockMessages.forEach((message) => {
   );
 });
 const ChatMessages = () => {
+  const { UserId } = useUserContext();
+  const endRef = React.useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  });
+
   return (
     <div className="chat-messages-container-list w-full h-full overflow-y-scroll">
-      <Space direction="vertical" size="middle" className="">
-        {mockMessages.map((message) => (
-          <ChatRow key={message.Id} Message={message} />
-        ))}
+      <Space direction="vertical" size="middle" className="w-full">
+        {mockMessages.map((message) => {
+          if (message.SenderId != UserId)
+            return (
+              <ChatRow.ParticipantVariant key={message.Id} Message={message} />
+            );
+          else
+            return (
+              <ChatRow.CurrentUserVariant key={message.Id} Message={message} />
+            );
+        })}
+        <a ref={endRef} />
       </Space>
     </div>
   );

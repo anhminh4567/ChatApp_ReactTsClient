@@ -1,5 +1,4 @@
 import { accessTokenKVP, refreshTokenKVP } from "@/config/storageKey";
-import { AuthenticationResponse } from "@/types/responses/AuthenticationResponse";
 import axios, {
   AxiosError,
   AxiosInstance,
@@ -8,11 +7,14 @@ import axios, {
   CreateAxiosDefaults,
   InternalAxiosRequestConfig,
 } from "axios";
-import { c } from "node_modules/vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
-const refreshEndpoint = "/Account/RefreshToken";
+import { User } from "oidc-client-ts";
+import { useAuth } from "react-oidc-context";
+// const refreshEndpoint = "/Account/RefreshToken";
 const CHAT_URL = import.meta.env.VITE_CHAT_URL;
 const USER_URL = import.meta.env.VITE_USER_URL;
-
+const USER_KVP = `oidc.user:${import.meta.env.VITE_AWS_AUTHORITY}:${
+  import.meta.env.VITE_AWS_CLIENT_ID
+}`;
 interface FailedRequests {
   resolve: (value: AxiosResponse) => void;
   reject: (value: AxiosError | any) => void;
@@ -22,7 +24,14 @@ interface FailedRequests {
 // this to handle request that 401, wait for new token, to preven many refresh cdall, very good concept
 let failedRequests: FailedRequests[] = [];
 let isTokenRefreshing = false;
-
+function getUserFromContextOIDC() {
+  const oidcStorage = localStorage.getItem(USER_KVP);
+  if (!oidcStorage) {
+    return null;
+  }
+  const user = User.fromStorageString(oidcStorage);
+  return user;
+}
 const createClient = (baseUrl: string): AxiosInstance => {
   const config: CreateAxiosDefaults = {
     baseURL: baseUrl,
@@ -32,9 +41,12 @@ const createClient = (baseUrl: string): AxiosInstance => {
   const client = axios.create(config);
   client.interceptors.request.use(
     (successConfig: InternalAxiosRequestConfig) => {
-      const token = localStorage.getItem(accessTokenKVP);
-      if (token) {
-        successConfig.headers.Authorization = `Bearer ${token}`;
+      console.log(USER_KVP);
+      let user = getUserFromContextOIDC();
+      console.log(user);
+      let accessToken = user.access_token; //window.localStorage.getItem(accessTokenKVP);
+      if (accessToken) {
+        successConfig.headers.Authorization = `Bearer ${accessToken}`;
       }
       return successConfig;
     },
