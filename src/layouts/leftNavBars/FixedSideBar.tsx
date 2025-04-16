@@ -22,14 +22,14 @@ const FixedSideBar = (params: FixedSideBarProps) => {
   return (
     <Sider
       theme="light"
-      className={`sticky h-screen overflow-auto  !w-[--sidebar-width]  ${className}`}
+      className={`sticky h-screen overflow-auto  !w-[--sidebar-width]  ${className} overflow-auto`}
       width={200}
       collapsible
-      {...(trigger
-        ? {
-            trigger,
-          }
-        : {})} // Conditionally add the trigger prop
+      // {...(trigger
+      //   ? {
+      //       trigger,
+      //     }
+      //   : {})} // Conditionally add the trigger prop
       breakpoint="lg"
     >
       {children}

@@ -1,9 +1,12 @@
+import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 import { DATE_TIME_FORMAT } from "@/config/dateTimeFormat";
 import { useUserContext } from "@/context/useUserContext";
-import ChatBox from "@/features/chatbox/ChatBox";
+import Chat from "@/features/chat/Chat";
+import ChatBox from "@/features/chat/components/ChatBox";
 import { GetMessagesByGroup } from "@/services/chatServices/MessageService";
+import { Group } from "@/types/group/Group";
 import moment from "moment";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { parseArgs } from "util";
 
@@ -12,32 +15,33 @@ export interface ChatPageProps {
 }
 
 const ChatPage = (params: ChatPageProps) => {
-  const { UserGroups, setCurrentSelectGroupChat } = useUserContext();
+  const { UserGroups, setCurrentSelectGroupChat, CurrentSelectGroupChat } =
+    useUserContext();
   const { groupId: paramGroupId, dateTimeFromLastMessage } = useParams();
   const groupId = params.GroupId || paramGroupId;
-  const dateTimeCursor = useMemo(() => {
-    return dateTimeFromLastMessage || moment(new Date());
-  }, [groupId]);
-  const getGroupMessages = GetMessagesByGroup(
-    groupId,
-    moment(dateTimeCursor, DATE_TIME_FORMAT).toDate()
-  );
-  setCurrentSelectGroupChat(UserGroups.find((g) => g.Id == groupId));
+  setCurrentSelectGroupChat(UserGroups.find((group) => group.Id === groupId));
   return (
     <>
-      <div
-        className="m-3 shadow-md bg-white  rounded-md p-1 "
-        style={{
-          height:
-            "calc(100vh - var(--navbar-height) - var(--typing-message-wrapper-height)) ",
-        }}
-      >
-        <h1>Chat Page</h1>
-        <p>Group ID: {groupId}</p>
-      </div>
-      <div className="m-3 message-typing-container">
-        <ChatBox />
-      </div>
+      {CurrentSelectGroupChat ? (
+        <Chat CurrentGroup={CurrentSelectGroupChat}>
+          <div
+            className="m-3 shadow-md bg-white rounded-md p-1"
+            style={{
+              height:
+                "calc(100vh - var(--navbar-height) - var(--typing-message-wrapper-height) - 8vh)",
+            }}
+          >
+            <Chat.ChatMessages />
+          </div>
+          <div className="m-3 message-typing-container">
+            <Chat.ChatBox />
+          </div>
+        </Chat>
+      ) : (
+        <div className="w-full h-[75vh] mt-[--navbar-height] flex flex-col justify-center align-middle">
+          <LoadingSpinner className="" />
+        </div>
+      )}
     </>
   );
 };

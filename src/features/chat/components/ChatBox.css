@@ -1,0 +1,11 @@
+.emoji-picker {
+    position: relative;
+
+}
+
+.emoji-picker .emoji-selector {
+    position: absolute;
+    bottom: 50px;
+    right: 0px;
+    z-index: 10;
+}
