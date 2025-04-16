@@ -12,7 +12,7 @@ export interface ChatBoxProps extends React.PropsWithChildren {}
 const ICON_MD_VIEWSIZE = "md:w-8 md:h-8";
 const ICON_SIZE = `w-6 h-6 ${ICON_MD_VIEWSIZE}`;
 const ChatBox = (params: ChatBoxProps) => {
-  const { currentGroup } = useChatGroupContext();
+  const { currentGroupDetail } = useChatGroupContext();
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = React.useState(false);
   const [messageInput, setMessageInput] = React.useState("");
 
@@ -33,7 +33,7 @@ const ChatBox = (params: ChatBoxProps) => {
   ) => {
     setMessageInput(e.target.value);
   };
-  if (!currentGroup) {
+  if (!currentGroupDetail) {
     return (
       <div className="w-full h-[--typing-message-wrapper-height] bg-white rounded-md">
         Loading chatbox...

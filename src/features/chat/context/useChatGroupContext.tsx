@@ -11,9 +11,11 @@ import { GetMessagesByGroup } from "@/services/chatServices/MessageService";
 import moment from "moment";
 import { DATE_TIME_FORMAT } from "@/config/dateTimeFormat";
 import { UseQueryResult } from "@tanstack/react-query";
+import { User } from "@/types/user/User";
+import { GroupDetail } from "@/types/group/GroupDetail";
 
 export interface ChatGroupContextType {
-  currentGroup: Group | null;
+  currentGroupDetail: GroupDetail | null;
   //setCurrentGroup: (group: Group | null) => void;
   messages: Message[];
   fetchNextMessages: () => UseQueryResult<Message[], Error>;
@@ -43,7 +45,7 @@ export interface ChatGroupProviderProps extends React.PropsWithChildren {
    *
    * @type {Group | null}
    */
-  currentSelectedGroup: Group | null;
+  currentSelectedGroupDetail: GroupDetail | null;
 
   /**
    * The timestamp of the last message in the chat group.
@@ -56,7 +58,7 @@ export interface ChatGroupProviderProps extends React.PropsWithChildren {
   dateTimeFromLastMessage?: string;
 }
 export const ChatGroupProvider = ({
-  currentSelectedGroup,
+  currentSelectedGroupDetail,
   children,
   dateTimeFromLastMessage,
 }: ChatGroupProviderProps) => {
@@ -68,7 +70,7 @@ export const ChatGroupProvider = ({
     );
   };
   const fetchNextMessages = () => {
-    if (!currentSelectedGroup)
+    if (!currentSelectedGroupDetail)
       throw new Error("currentGroup is null. Cannot fetch messages.");
     // we sort by asce since we want to POP() , the pop is at the end of the array
     // so the end need to be largest
@@ -83,19 +85,24 @@ export const ChatGroupProvider = ({
       dateTimeCursor = latestMessages.CreatedAt;
     }
     console.log("yea check fetch ok");
-    return GetMessagesByGroup(currentSelectedGroup.Id, dateTimeCursor, 10);
+    return GetMessagesByGroup(
+      currentSelectedGroupDetail.Group.Id,
+      dateTimeCursor,
+      10
+    );
   };
   const dateTimeCursor = React.useMemo(() => {
     return dateTimeFromLastMessage || moment(new Date());
-  }, [currentSelectedGroup]);
+  }, [currentSelectedGroupDetail.Group]);
   const {
     data: fetchedMessages,
     isLoading,
     isError,
   } = GetMessagesByGroup(
-    currentSelectedGroup?.Id,
+    currentSelectedGroupDetail.Group?.Id,
     moment(dateTimeCursor, DATE_TIME_FORMAT).toDate()
   );
+
   useEffect(() => {
     if (fetchedMessages && !isLoading && !isError) {
       appendMessages(fetchedMessages);
@@ -105,7 +112,7 @@ export const ChatGroupProvider = ({
   return (
     <ChatGroupContext.Provider
       value={{
-        currentGroup: currentSelectedGroup,
+        currentGroupDetail: currentSelectedGroupDetail,
         //setCurrentGroup,
         messages,
         fetchNextMessages,

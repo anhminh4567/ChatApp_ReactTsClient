@@ -3,6 +3,7 @@ import { DATE_TIME_FORMAT } from "@/config/dateTimeFormat";
 import { useUserContext } from "@/context/useUserContext";
 import Chat from "@/features/chat/Chat";
 import ChatBox from "@/features/chat/components/ChatBox";
+import { getGroupDetails } from "@/services/chatServices/GroupServices";
 import { GetMessagesByGroup } from "@/services/chatServices/MessageService";
 import { Group } from "@/types/group/Group";
 import moment from "moment";
@@ -19,11 +20,14 @@ const ChatPage = (params: ChatPageProps) => {
     useUserContext();
   const { groupId: paramGroupId, dateTimeFromLastMessage } = useParams();
   const groupId = params.GroupId || paramGroupId;
-  setCurrentSelectGroupChat(UserGroups.find((group) => group.Id === groupId));
+  const group = UserGroups.find((group) => group.Id === groupId);
+  const { data, isLoading, isError } = getGroupDetails(groupId);
+  setCurrentSelectGroupChat(group);
+
   return (
     <>
-      {CurrentSelectGroupChat ? (
-        <Chat CurrentGroup={CurrentSelectGroupChat}>
+      {data && !isLoading && !isError ? (
+        <Chat CurrentGroup={data}>
           <div
             className="m-3 shadow-md bg-white rounded-md p-1"
             style={{

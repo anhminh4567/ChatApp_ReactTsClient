@@ -5,9 +5,10 @@ import ChatMessages from "./components/ChatMessages";
 import ErrorOutline from "@/components/errors/ErrorOutline";
 import { ErrorBoundary } from "react-error-boundary";
 import { Group } from "@/types/group/Group";
+import { GroupDetail } from "@/types/group/GroupDetail";
 
 export interface ChatProps extends React.PropsWithChildren {
-  CurrentGroup: Group | null; // Pass the group as a prop
+  CurrentGroup: GroupDetail | null; // Pass the group as a prop
 }
 
 const Chat = ({ children, CurrentGroup }: ChatProps) => {
@@ -15,7 +16,7 @@ const Chat = ({ children, CurrentGroup }: ChatProps) => {
 
   return (
     <div className="chat-group-wrapper-context">
-      <ChatGroupProvider currentSelectedGroup={CurrentGroup}>
+      <ChatGroupProvider currentSelectedGroupDetail={CurrentGroup}>
         <ErrorBoundary
           fallback={
             <div className="w-full h-[80vh] flex justify-center items-center">
