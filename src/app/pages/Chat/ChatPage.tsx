@@ -16,13 +16,15 @@ export interface ChatPageProps {
 }
 
 const ChatPage = (params: ChatPageProps) => {
-  const { UserGroups, setCurrentSelectGroupChat, CurrentSelectGroupChat } =
-    useUserContext();
+  const { UserGroups } = useUserContext();
   const { groupId: paramGroupId, dateTimeFromLastMessage } = useParams();
   const groupId = params.GroupId || paramGroupId;
-  const group = UserGroups.find((group) => group.Id === groupId);
+  const group = UserGroups.data?.find((group) => group.Id === groupId);
   const { data, isLoading, isError } = getGroupDetails(groupId);
-  setCurrentSelectGroupChat(group);
+  // if (group) {
+  //   console.log("current group is selected");
+  //   setCurrentSelectGroupChat(group);
+  // }
 
   return (
     <>

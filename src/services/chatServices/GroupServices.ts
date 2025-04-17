@@ -1,4 +1,5 @@
 import { Group } from "@/types/group/Group";
+import { GroupDetail } from "@/types/group/GroupDetail";
 import { ChatHttpClient } from "@/utils/HttpClient";
 import {
   useQuery,
@@ -7,12 +8,19 @@ import {
   UseQueryResult,
   UseMutationResult,
   useQueryClient,
+  UseQueryOptions,
 } from "@tanstack/react-query";
 const BASE_API_CALL = "api";
+type OtherQueryOptions<T extends UseQueryOptions> = Omit<
+  T,
+  "queryKey" | "queryFn"
+>;
+
 const getGroupsForUser = (
   userId: string,
+  otherQueryOptions?: OtherQueryOptions<UseQueryOptions<Group[], Error>>,
   onSuccess?: (groups: Group[]) => void
-) => {
+): UseQueryResult<Group[], Error> => {
   return useQuery<Group[]>({
     queryKey: ["groupsForUser", userId],
     queryFn: async () => {
@@ -21,12 +29,13 @@ const getGroupsForUser = (
       const response = await ChatHttpClient.get(
         `${BASE_API_CALL}/groups/get-for-user`,
         {
-          params: { UserId: userId },
+          params: { IdentityId: userId },
         }
       );
       if (onSuccess) onSuccess(response.data);
       return response.data;
     },
+    ...otherQueryOptions,
   });
 };
 // Fetch all groups
@@ -41,7 +50,10 @@ const getAllGroups = () => {
 };
 
 // Fetch group details by groupId
-const getGroupDetails = (groupId: string) => {
+const getGroupDetails = (
+  groupId: string,
+  otherQueryOptions?: OtherQueryOptions<UseQueryOptions<GroupDetail, Error>>
+) => {
   return useQuery({
     queryKey: ["groupDetails", groupId],
     queryFn: async () => {
@@ -50,6 +62,7 @@ const getGroupDetails = (groupId: string) => {
       );
       return response.data;
     },
+    ...otherQueryOptions,
   });
 };
 

@@ -15,7 +15,7 @@ import {
   NotificationOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import FixedSideBar from "./leftNavBars/FixedSideBar";
 import FixedHeader from "./topBars/FixedHeader";
 import geminiGenIcon from "@/assets/gemini-gen.png";
@@ -34,31 +34,19 @@ const { Header, Content, Footer, Sider } = Layout;
 export interface BaseLayoutProps extends React.PropsWithChildren {}
 
 const BaseLayout = (params: BaseLayoutProps) => {
-  const {
-    setUserGroups,
-    UserGroups,
-    setCurrentSelectGroupChat,
-    CurrentSelectGroupChat,
-  } = useUserContext();
-  const { children } = params;
+  const { setUserGroups, UserGroups, setCurrentSelectGroupChat, User } =
+    useUserContext();
   const { useToken } = theme;
   const { token } = useToken();
   const navigate = useNavigate();
-  const getGroupForUserQuery = getGroupsForUser(
-    "c28ab02a-73a5-4614-a822-e34054b04051",
-    (data) => {
-      setUserGroups(data);
-      console.log(UserGroups);
-    }
-  );
+
   const handleGroupClick = (groupId: string) => {
-    const group = UserGroups.find((group) => group.Id === groupId);
+    const group = UserGroups.data.find((group) => group.Id === groupId);
     if (!group) return;
     setCurrentSelectGroupChat(group);
     navigate(`/group/${group.Id}`);
   };
 
-  //
   return (
     <Layout hasSider className="100vh">
       <FixedSideBar
@@ -74,16 +62,16 @@ const BaseLayout = (params: BaseLayoutProps) => {
         >
           <Input placeholder="Filled" className="w-[90%] " />
         </div>
-        {getGroupForUserQuery.isLoading && (
+        {UserGroups.isLoading && (
           <div className="w-full h-[80%] flex flex-col justify-center items-center">
             <LoadingSpinner className="p-4" />
           </div>
         )}
-        {!getGroupForUserQuery.isLoading && !getGroupForUserQuery.isError && (
+        {!UserGroups.isLoading && !UserGroups.isError && (
           <List
             className="p-2"
             itemLayout="horizontal"
-            dataSource={getGroupForUserQuery.data}
+            dataSource={UserGroups.data}
             renderItem={(item, index) => (
               <List.Item
                 className=""
@@ -107,11 +95,11 @@ const BaseLayout = (params: BaseLayoutProps) => {
             )}
           />
         )}
-        {getGroupForUserQuery.isError && (
+        {UserGroups.isError && (
           <div className="w-full h-[80%] mx-auto">
             <ErrorOutline
               IconSize="medium"
-              Message={getGroupForUserQuery.error.message}
+              Message={UserGroups.error.message}
               className="w-full h-full"
             />
           </div>

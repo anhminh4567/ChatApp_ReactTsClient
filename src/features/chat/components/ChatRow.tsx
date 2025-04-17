@@ -19,7 +19,7 @@ const ChatRowParticipant = ({ Message }: ChatRowProps) => {
     <div className="messageRow flex flex-row gap-2 justify-start ">
       <img
         src={AvartarBaseImgage}
-        className="md:w-10 md:h-10 min-w-8 min-h-8 object-fill rounded-full"
+        className="md:w-10 md:h-10 w-8 h-8 object-fill rounded-full"
       />
       <div className="messageRow-content flex flex-col ml-3 max-w-[70%] shadow-md p-2 rounded-md">
         <div className="messageRow-header flex flex-row justify-start gap-5 align-middle">
@@ -110,7 +110,7 @@ const ChatRowCurrentUser = ({ Message }: ChatRowProps) => {
       </div>
       <img
         src={AvartarBaseImgage}
-        className="md:w-10 md:h-10 min-w-8 min-h-8 object-fill rounded-full"
+        className="md:w-10 md:h-10 w-8 h-8 object-fill rounded-full"
       />
     </div>
   );

@@ -2,11 +2,12 @@ import { Group } from "../group/Group";
 import { User } from "../user/User";
 import { UserFriend } from "../user/UserFriend";
 import { UserLetter } from "../user/UserLetter";
+import { DataFetchState } from "./DataFetchState";
 
 export type UserContextType = {
-  User?: User;
-  UserId: string;
-  UserGroups: Group[];
+  User?: DataFetchState<User>;
+  IdentityId: string;
+  UserGroups: DataFetchState<Group[]>;
   UserFriends?: UserFriend[];
   UserLetters?: UserLetter[];
   CurrentSelectGroupChat?: Group;
