@@ -37,16 +37,17 @@ const ChatPage = (params: ChatPageProps) => {
       {data && !isLoading && !isError ? (
         <Chat CurrentGroup={data}>
           <div
-            className="m-3 shadow-md bg-white rounded-md p-1"
+            className="chat-container flex flex-col justify-between"
             style={{
-              height:
-                "calc(100vh - var(--navbar-height) - var(--typing-message-wrapper-height) - 8vh)",
+              height: "calc(100vh - var(--navbar-height))",
             }}
           >
-            <Chat.ChatMessages />
-          </div>
-          <div className="m-3 message-typing-container">
-            <Chat.ChatBox />
+            <div className="m-3 shadow-md bg-white rounded-md p-1 overflow-auto">
+              <Chat.ChatMessages />
+            </div>
+            <div className="m-3 message-typing-container">
+              <Chat.ChatBox />
+            </div>
           </div>
         </Chat>
       ) : (

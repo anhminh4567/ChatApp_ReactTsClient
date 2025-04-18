@@ -24,20 +24,7 @@ const Authentication = () => {
     window.location.href = logoutUrl;
   };
   useEffect(() => {
-    // if (oidcAuth.isAuthenticated) {
-    //   console.log("user is authenticated");
-    //   notification.success({
-    //     message: "Login Success",
-    //     description: `Hello ${oidcAuth.user?.profile.email}`,
-    //     placement: "topRight",
-    //     duration: 10000,
-    //     showProgress: true,
-    //   });
     navigate("/");
-
-    // setTimeout(() => {
-    //   navigate("/");
-    // }, 2000);
   }, [oidcAuth]);
   if (oidcAuth.isLoading) {
     console.log("user is loading");
@@ -94,13 +81,5 @@ const Authentication = () => {
     </div>
   );
 };
-// return (
-//   <div className="text-white">
-//     <pre> Hello: {oidcAuth.user?.profile.email} </pre>
-//     <pre> ID Token: {oidcAuth.user?.id_token} </pre>
-//     <pre> Access Token: {oidcAuth.user?.access_token} </pre>
-//     <pre> Refresh Token: {oidcAuth.user?.refresh_token} </pre>
-//     <button onClick={() => oidcAuth.removeUser()}>Sign out</button>
-//   </div>
-// );
+
 export default Authentication;

@@ -1,0 +1,4 @@
+export const APP_CONFIG = {
+  MAX_IMAGE_UPLOAD: 5,
+  MAX_MESSAGE_LENGTH: 3000,
+};
