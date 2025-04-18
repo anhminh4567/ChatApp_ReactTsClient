@@ -15,7 +15,7 @@ import {
   NotificationOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useRef } from "react";
 import FixedSideBar from "./leftNavBars/FixedSideBar";
 import FixedHeader from "./topBars/FixedHeader";
 import geminiGenIcon from "@/assets/gemini-gen.png";
@@ -29,13 +29,17 @@ import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 import ErrorOutline from "@/components/errors/ErrorOutline";
 import { useUserContext } from "@/context/useUserContext";
 import { Link, Outlet, useNavigate } from "react-router";
+import { toast } from "react-toastify";
 const { Header, Content, Footer, Sider } = Layout;
 
 export interface BaseLayoutProps extends React.PropsWithChildren {}
 
 const BaseLayout = (params: BaseLayoutProps) => {
-  const { setUserGroups, UserGroups, setCurrentSelectGroupChat, User } =
-    useUserContext();
+  const renderCount = useRef(0); // Track render count
+  renderCount.current += 1;
+  console.log("BaseLayout render count:", renderCount.current);
+
+  const { UserGroups, setCurrentSelectGroupChat, User } = useUserContext();
   const { useToken } = theme;
   const { token } = useToken();
   const navigate = useNavigate();
@@ -46,7 +50,9 @@ const BaseLayout = (params: BaseLayoutProps) => {
     setCurrentSelectGroupChat(group);
     navigate(`/group/${group.Id}`);
   };
-
+  // if (User.data) {
+  //   toast.success(`Welcom ${User.data.Name}`);
+  // }
   return (
     <Layout hasSider className="100vh">
       <FixedSideBar

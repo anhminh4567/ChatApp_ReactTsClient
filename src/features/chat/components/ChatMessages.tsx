@@ -1,5 +1,5 @@
 import { Space } from "antd";
-import React, { use, useEffect } from "react";
+import React, { use, useEffect, useRef } from "react";
 import { Message } from "../../../types/message/Message";
 import { MediaObject } from "@/types/shared/MediaObject";
 import ChatRow from "./ChatRow";
@@ -40,6 +40,10 @@ mockMessages.forEach((message) => {
   );
 });
 const ChatMessages = () => {
+  const renderCount = useRef(0); // Track render count
+  renderCount.current += 1;
+  console.log("ChatMessages render count:", renderCount.current);
+
   const { User } = useUserContext();
   const { currentGroupDetail } = useChatGroupContext();
   const userParticipant = currentGroupDetail.ParticipantsDetail.find(

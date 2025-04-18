@@ -7,6 +7,7 @@ import ReactQueryProvider from "./providers/ReactQueryProvider";
 import UserProvider from "./providers/UserProvider";
 import SecretProvider from "./providers/SecretProvider";
 import AuthenticationProvider from "./providers/AuthenticationProvider";
+import ToastifyNotification from "@/components/notifications/ToastifyNotification";
 // import "./App.css";
 function App() {
   const testValue = import.meta.env.VITE_TEST_VALUE;
@@ -19,6 +20,7 @@ function App() {
             <ReactQueryProvider>
               <UserProvider>
                 <AllRoutes />
+                <ToastifyNotification />
               </UserProvider>
             </ReactQueryProvider>
           </AuthenticationProvider>

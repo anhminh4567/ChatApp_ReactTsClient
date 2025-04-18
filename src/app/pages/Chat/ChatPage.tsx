@@ -7,8 +7,9 @@ import { getGroupDetails } from "@/services/chatServices/GroupServices";
 import { GetMessagesByGroup } from "@/services/chatServices/MessageService";
 import { Group } from "@/types/group/Group";
 import moment from "moment";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
+import { toast } from "react-toastify";
 import { parseArgs } from "util";
 
 export interface ChatPageProps {
@@ -16,11 +17,16 @@ export interface ChatPageProps {
 }
 
 const ChatPage = (params: ChatPageProps) => {
+  const renderCount = useRef(0); // Track render count
+  renderCount.current += 1;
+  console.log("ChatPage render count:", renderCount.current);
+
   const { UserGroups } = useUserContext();
   const { groupId: paramGroupId, dateTimeFromLastMessage } = useParams();
   const groupId = params.GroupId || paramGroupId;
   const group = UserGroups.data?.find((group) => group.Id === groupId);
   const { data, isLoading, isError } = getGroupDetails(groupId);
+  // toast("Wow so easy!");
   // if (group) {
   //   console.log("current group is selected");
   //   setCurrentSelectGroupChat(group);
