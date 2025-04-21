@@ -24,8 +24,11 @@ const Authentication = () => {
     window.location.href = logoutUrl;
   };
   useEffect(() => {
-    navigate("/");
-  }, [oidcAuth]);
+    if (oidcAuth.isAuthenticated) {
+      console.log("user is authenticated", oidcAuth.user);
+      navigate("/");
+    }
+  }, [oidcAuth.isAuthenticated]);
   if (oidcAuth.isLoading) {
     console.log("user is loading");
     return (

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { Group } from "@/types/group/Group";
 import { GroupDetail } from "@/types/group/GroupDetail";
 import { ChatHttpClient } from "@/utils/HttpClient";
@@ -26,7 +27,7 @@ const getGroupsForUser = (
     queryFn: async () => {
       // deplay 1 sec
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      const response = await ChatHttpClient.get(
+      const response = await ChatHttpClient.get<Group[]>(
         `${BASE_API_CALL}/groups/get-for-user`,
         {
           params: { IdentityId: userId },

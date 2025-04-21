@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from "react";
+import React, { memo, Suspense, useState } from "react";
 import ChatBox from "./components/ChatBox";
 import { ChatGroupProvider } from "./context/useChatGroupContext";
 import ChatMessages from "./components/ChatMessages";
@@ -35,5 +35,8 @@ const Chat = ({ children, CurrentGroup }: ChatProps) => {
 };
 Chat.ChatBox = ChatBox;
 Chat.ChatMessages = ChatMessages;
-
+// const Chat = memo(Chat, (prevProps, nextProps) => {
+//   // Only re-render if the CurrentGroup actually changes
+//   return prevProps.CurrentGroup?.Group.Id === nextProps.CurrentGroup?.Group.Id;
+// });
 export default Chat;

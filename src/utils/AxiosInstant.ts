@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { accessTokenKVP, refreshTokenKVP } from "@/config/storageKey";
 import axios, {
   AxiosError,
@@ -17,13 +18,13 @@ const USER_KVP = `oidc.user:${import.meta.env.VITE_AWS_AUTHORITY}:${
 }`;
 interface FailedRequests {
   resolve: (value: AxiosResponse) => void;
-  reject: (value: AxiosError | any) => void;
+  reject: (value: AxiosError | never) => void;
   config: AxiosRequestConfig;
   error: AxiosError;
 }
 // this to handle request that 401, wait for new token, to preven many refresh cdall, very good concept
-let failedRequests: FailedRequests[] = [];
-let isTokenRefreshing = false;
+const failedRequests: FailedRequests[] = [];
+const isTokenRefreshing = false;
 function getUserFromContextOIDC() {
   const oidcStorage = localStorage.getItem(USER_KVP);
   if (!oidcStorage) {
@@ -44,7 +45,7 @@ const createClient = (baseUrl: string): AxiosInstance => {
       console.log(USER_KVP);
       let user = getUserFromContextOIDC();
       console.log(user);
-      let accessToken = user.access_token; //window.localStorage.getItem(accessTokenKVP);
+      let accessToken = user?.access_token; //window.localStorage.getItem(accessTokenKVP);
       if (accessToken) {
         successConfig.headers.Authorization = `Bearer ${accessToken}`;
       }

@@ -1,20 +1,22 @@
 import React from "react";
 import AvartarBaseImgage from "@/assets/avatarbase.jpg";
 import { Message } from "@/types/message/Message";
-import { message, Skeleton, theme } from "antd";
+import { message, Skeleton, theme, Image } from "antd";
 import { useChatGroupContext } from "../context/useChatGroupContext";
 import { useUserContext } from "@/context/useUserContext";
+import { APP_CONFIG } from "@/config/appConfig";
+import { User } from "@/types/user/User";
+import { DateTimeFormatter } from "@/utils/DateTimeFormater";
 export interface ChatRowProps {
   Message: Message; // Message object containing message details
+  Sender: User;
 }
-const maxWidth = "70%"; // Maximum width for the message content
+
 const ChatRow = () => {
   return <></>;
 };
 
-const ChatRowParticipant = ({ Message }: ChatRowProps) => {
-  const { currentGroupDetail } = useChatGroupContext();
-
+const ChatRowParticipant = ({ Message, Sender }: ChatRowProps) => {
   return (
     <div className="messageRow flex flex-row gap-2 justify-start ">
       <img
@@ -23,21 +25,26 @@ const ChatRowParticipant = ({ Message }: ChatRowProps) => {
       />
       <div className="messageRow-content flex flex-col ml-3 max-w-[70%] shadow-md p-2 rounded-md">
         <div className="messageRow-header flex flex-row justify-start gap-5 align-middle">
-          <p className="font-bold text-sm my-auto">{"Sender"}</p>
-          <p className="text-xs text-gray-500 my-auto">12:00 PM</p>
+          <p className="font-bold text-sm my-auto">{Sender.Name}</p>
+          <p className="text-xs text-gray-500 my-auto">
+            {DateTimeFormatter.parseToDateTimeFormat(
+              Message.CreatedAt.toString()
+            )}
+          </p>
         </div>
         <p className="text-messages text-sm text-gray-700">{Message.Content}</p>
         <section className="message-row-attachment flex flex-row gap-2 mt-2 flex-wrap">
           {Message.MessageAttachments.map((attachment) => {
             return (
               <>
-                <img
+                <Image
+                  width={200}
+                  height={200}
                   key={attachment.Id}
                   src={attachment.ThumbDetail?.FileUrl}
-                  className="w-20 h-20 object-cover rounded-md shadow-md "
-                  alt="att"
-                  loading="lazy" // Lazy loading attribute
-                  onLoad={(e) => {}} // Lazy loading attribute
+                  loading="lazy"
+                  onLoad={(e) => {}}
+                  fallback={APP_CONFIG.DEFAULT_FALLBACK_IMAGE_BASE64}
                 />
               </>
             );
@@ -47,8 +54,7 @@ const ChatRowParticipant = ({ Message }: ChatRowProps) => {
     </div>
   );
 };
-const ChatRowCurrentUser = ({ Message }: ChatRowProps) => {
-  const { currentGroupDetail } = useChatGroupContext();
+const ChatRowCurrentUser = ({ Message, Sender }: ChatRowProps) => {
   const { useToken } = theme;
   const { token } = useToken();
   const mainBgColor = token.colorPrimary;
@@ -66,7 +72,7 @@ const ChatRowCurrentUser = ({ Message }: ChatRowProps) => {
               color: mainTextColor,
             }}
           >
-            {"Sender"}
+            {Sender.Name}
           </p>
           <p
             className="text-xs text-gray-500 my-auto"
@@ -74,7 +80,9 @@ const ChatRowCurrentUser = ({ Message }: ChatRowProps) => {
               color: mainTextColor,
             }}
           >
-            12:00 PM
+            {DateTimeFormatter.parseToDateTimeFormat(
+              Message.CreatedAt.toString()
+            )}
           </p>
         </div>
         <p
@@ -89,13 +97,14 @@ const ChatRowCurrentUser = ({ Message }: ChatRowProps) => {
           {Message.MessageAttachments.map((attachment) => {
             return (
               <>
-                <img
+                <Image
+                  width={80}
+                  height={80}
                   key={attachment.Id}
                   src={attachment.ThumbDetail?.FileUrl}
-                  className="w-20 h-20 object-cover rounded-md shadow-md"
-                  alt="att"
-                  loading="lazy" // Lazy loading attribute
-                  onLoad={(e) => {}} // Lazy loading attribute
+                  loading="lazy"
+                  onLoad={(e) => {}}
+                  fallback={APP_CONFIG.DEFAULT_FALLBACK_IMAGE_BASE64}
                 />
               </>
             );

@@ -1,7 +1,9 @@
 import { DATE_TIME_FORMAT } from "@/config/dateTimeFormat";
 import { Group } from "@/types/group/Group";
 import { Message } from "@/types/message/Message";
+import { User } from "@/types/user/User";
 import { ChatHttpClient } from "@/utils/HttpClient";
+import { getSignalRConnection } from "@/utils/RealTimeConnection";
 import {
   useQuery,
   useMutation,
@@ -10,6 +12,7 @@ import {
   UseMutationResult,
   useQueryClient,
 } from "@tanstack/react-query";
+import { Form } from "antd";
 import moment from "moment";
 const BASE_API_CALL = "api";
 const GetAllMessages = (): UseQueryResult<any> => {
@@ -25,44 +28,58 @@ const GetAllMessages = (): UseQueryResult<any> => {
 };
 
 // Fetch paginated messages for a group
-const GetMessagesByGroup = (
+const GetMessagesByGroup = async (
   groupId: string,
   dateTimeCursor: Date,
   take?: number
-): UseQueryResult<Message[], Error> => {
+) => {
+  if (!take) take = 20;
   let dateTimeAsString: string =
     moment(dateTimeCursor).format(DATE_TIME_FORMAT);
-  if (!take) take = 20;
-  return useQuery({
-    queryKey: ["messages", "paging", groupId, dateTimeCursor, take],
-    queryFn: async () => {
-      const response = await ChatHttpClient.get(
-        `${BASE_API_CALL}/messages/paging`,
-        {
-          params: {
-            GroupId: groupId,
-            DateTimeCursor: dateTimeAsString,
-            Take: take,
-          },
-        }
-      );
-      console.log(response.data);
-      return response.data;
-    },
-    retry: false,
-    enabled: !!groupId, // Only fetch if groupId is provided
-  });
+  const response = await ChatHttpClient.get<Message[]>(
+    `${BASE_API_CALL}/messages/paging`,
+    {
+      params: {
+        GroupId: groupId,
+        DateTimeCursor: moment(dateTimeCursor).toISOString(true),
+        Take: take,
+      },
+    }
+  );
+  console.log(response.data);
+  return response.data;
+
+  // return useQuery({
+  //   queryKey: ["messages", "paging", groupId, dateTimeCursor, take],
+  //   queryFn:
+  //   retry: false,
+  //   enabled: !!groupId, // Only fetch if groupId is provided
+  // });
 };
-const SendMessage = (): UseMutationResult<Message[], Error> => {
-  return useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await ChatHttpClient.postForm(
-        `${BASE_API_CALL}/messages`,
-        formData
-      );
-      return response.data;
-    },
-  });
+const SendMessage = async (
+  group: Group,
+  sender: User,
+  content: string,
+  refernceMessage?: Message,
+  attachements?: File[]
+) => {
+  let body = new FormData();
+  body.append("groupId", group.Id);
+  body.append("message.SenderId", sender.Id);
+  body.append("message.Content", content);
+  if (refernceMessage) {
+    body.append("message.ReferenceMessageId", refernceMessage.Id);
+  }
+  if (attachements) {
+    attachements.forEach((file) => {
+      body.append("attachments", file);
+    });
+  }
+  const response = await ChatHttpClient.postForm<Message>(
+    `${BASE_API_CALL}/messages`,
+    body
+  );
+  return response.data;
 };
 const DeleteMessage = (): UseMutationResult<
   undefined,
@@ -82,3 +99,5 @@ const DeleteMessage = (): UseMutationResult<
   });
 };
 export { GetAllMessages, GetMessagesByGroup, SendMessage, DeleteMessage };
+
+export const RealTimeService = {};

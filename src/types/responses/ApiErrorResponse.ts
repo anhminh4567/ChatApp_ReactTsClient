@@ -4,5 +4,5 @@ export type ApiErrorResponse = {
   status: number;
   detail?: string;
   traceId: string;
-  errors?: Object[];
+  errors?: object[];
 };

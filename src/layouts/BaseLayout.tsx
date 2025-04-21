@@ -10,29 +10,21 @@ import {
   theme,
   theme as antdTheme,
 } from "antd";
-import {
-  LaptopOutlined,
-  NotificationOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+
 import React, { Suspense, useEffect, useRef } from "react";
 import FixedSideBar from "./leftNavBars/FixedSideBar";
 import FixedHeader from "./topBars/FixedHeader";
 import geminiGenIcon from "@/assets/gemini-gen.png";
 import avatarBase from "@/assets/avatarbase.jpg";
-import {
-  getGroupsForUser,
-  getGroupDetails,
-  createGroup,
-} from "@/services/chatServices/GroupServices";
 import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 import ErrorOutline from "@/components/errors/ErrorOutline";
 import { useUserContext } from "@/context/useUserContext";
-import { Link, Outlet, useNavigate } from "react-router";
-import { toast } from "react-toastify";
-const { Header, Content, Footer, Sider } = Layout;
+import { Outlet, useNavigate } from "react-router";
+import MainButton from "@/components/buttons/MainButton";
+import { useAuth } from "react-oidc-context";
+const { Content } = Layout;
 
-export interface BaseLayoutProps extends React.PropsWithChildren {}
+export type BaseLayoutProps = React.PropsWithChildren;
 
 const BaseLayout = (params: BaseLayoutProps) => {
   const renderCount = useRef(0); // Track render count
@@ -40,19 +32,17 @@ const BaseLayout = (params: BaseLayoutProps) => {
   console.log("BaseLayout render count:", renderCount.current);
 
   const { UserGroups, setCurrentSelectGroupChat, User } = useUserContext();
+  const { signoutRedirect } = useAuth();
   const { useToken } = theme;
   const { token } = useToken();
   const navigate = useNavigate();
 
   const handleGroupClick = (groupId: string) => {
-    const group = UserGroups.data.find((group) => group.Id === groupId);
+    const group = UserGroups.data?.find((group) => group.Id === groupId);
     if (!group) return;
     setCurrentSelectGroupChat(group);
     navigate(`/group/${group.Id}`);
   };
-  // if (User.data) {
-  //   toast.success(`Welcom ${User.data.Name}`);
-  // }
   return (
     <Layout hasSider className="100vh">
       <FixedSideBar
@@ -105,7 +95,7 @@ const BaseLayout = (params: BaseLayoutProps) => {
           <div className="w-full h-[80%] mx-auto">
             <ErrorOutline
               IconSize="medium"
-              Message={UserGroups.error.message}
+              Message={UserGroups.error?.message}
               className="w-full h-full"
             />
           </div>
@@ -113,19 +103,28 @@ const BaseLayout = (params: BaseLayoutProps) => {
       </FixedSideBar>
 
       <Layout className=" pt-0">
-        <FixedHeader className="shadow-md bg-white top-0">
-          <div className="flex flex-row w-[30%] align-middle ">
+        <FixedHeader className="shadow-md bg-white top-0 flex flex-row justify-between p-3 items-center">
+          <section className="end-section flex flex-row  align-middle  ">
             <img
-              src={geminiGenIcon}
+              src={User?.data?.AvatarUri ?? avatarBase}
               className="object-contain w-12 h-12 rounded-full mt-auto mb-auto ms-2"
             />
-          </div>
+          </section>
+
+          <section className="middle-section"></section>
+          <section className="start-section">
+            <MainButton
+              onClick={() => {
+                navigate("/logout");
+              }}
+            >
+              Logout
+            </MainButton>
+          </section>
         </FixedHeader>
-        {/* {children} */}
         <Content>
           <Outlet />
         </Content>
-        {/* {children} */}
       </Layout>
     </Layout>
     // </Layout>

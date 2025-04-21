@@ -3,6 +3,11 @@ import React, { useContext } from "react";
 
 export interface SecretContext {
   AwsCognitoConfig: AwsCognitoAuthConfig;
+  ApplicationConfig: {
+    ChatModuleBaseUrl: string;
+    UserModuleBaseUrl: string;
+    ChatHubConnectionUrl: string;
+  };
 }
 const SecretContext = React.createContext<SecretContext | null>(null);
 
@@ -26,6 +31,13 @@ const SecretProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
             scope: import.meta.env.VITE_AWS_SCOPE,
             logout_uri: import.meta.env.VITE_AWS_LOGOUT_URI,
             domain: import.meta.env.VITE_AWS_COGNITO_DOMAIN,
+          },
+          ApplicationConfig: {
+            ChatModuleBaseUrl: import.meta.env.VITE_CHAT_URL,
+            UserModuleBaseUrl: import.meta.env.VITE_USER_URL,
+            ChatHubConnectionUrl: `${import.meta.env.VITE_CHAT_URL}/${
+              import.meta.env.VITE_CHAT_HUB_URI
+            }`,
           },
         }}
       >
