@@ -4,4 +4,5 @@ export enum ChatReceiverMethod {
   ReceiveIsTyping = "ReceiveIsTyping",
   ReceiveStopTyping = "ReceiveStopTyping",
   ReceiveError = "ReceiveError",
+  ReceiveNewGroupMessage = "ReceiveNewGroupMessage",
 }

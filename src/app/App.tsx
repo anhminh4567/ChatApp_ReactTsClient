@@ -1,6 +1,3 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import AntdProvider from "./providers/AntdProvider";
 import AllRoutes from "./routes";
 import ReactQueryProvider from "./providers/ReactQueryProvider";
@@ -8,10 +5,10 @@ import UserProvider from "./providers/UserProvider";
 import SecretProvider from "./providers/SecretProvider";
 import AuthenticationProvider from "./providers/AuthenticationProvider";
 import ToastifyNotification from "@/components/notifications/ToastifyNotification";
+import { useAuth } from "react-oidc-context";
+import useSignalRStore from "@/store/useSignalRStore";
 // import "./App.css";
 function App() {
-  const testValue = import.meta.env.VITE_TEST_VALUE;
-
   return (
     <>
       <AntdProvider>

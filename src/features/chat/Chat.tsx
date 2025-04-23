@@ -1,4 +1,4 @@
-import React, { memo, Suspense, useState } from "react";
+import React, { memo, Suspense, useEffect, useState } from "react";
 import ChatBox from "./components/ChatBox";
 import { ChatGroupProvider } from "./context/useChatGroupContext";
 import ChatMessages from "./components/ChatMessages";
@@ -6,6 +6,7 @@ import ErrorOutline from "@/components/errors/ErrorOutline";
 import { ErrorBoundary } from "react-error-boundary";
 import { Group } from "@/types/group/Group";
 import { GroupDetail } from "@/types/group/GroupDetail";
+import useGroupMessagesStore from "@/store/useGroupMessagesStore";
 
 export interface ChatProps extends React.PropsWithChildren {
   CurrentGroup: GroupDetail | null; // Pass the group as a prop
@@ -13,7 +14,11 @@ export interface ChatProps extends React.PropsWithChildren {
 
 const Chat = ({ children, CurrentGroup }: ChatProps) => {
   console.log("Chat received CurrentGroup:", CurrentGroup);
-
+  const { clear } = useGroupMessagesStore();
+  useEffect(() => {
+    // Clear the messages when the CurrentGroup changes
+    clear();
+  }, [CurrentGroup]);
   return (
     <div className="chat-group-wrapper-context">
       <ChatGroupProvider currentSelectedGroupDetail={CurrentGroup}>

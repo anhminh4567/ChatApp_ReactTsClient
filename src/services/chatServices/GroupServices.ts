@@ -5,9 +5,6 @@ import { ChatHttpClient } from "@/utils/HttpClient";
 import {
   useQuery,
   useMutation,
-  useSuspenseQuery,
-  UseQueryResult,
-  UseMutationResult,
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
@@ -16,29 +13,24 @@ type OtherQueryOptions<T extends UseQueryOptions> = Omit<
   T,
   "queryKey" | "queryFn"
 >;
+//    queryKey: ["groupsForUser", userId],
 
-const getGroupsForUser = (
+const getGroupsForUser = async (
   userId: string,
-  otherQueryOptions?: OtherQueryOptions<UseQueryOptions<Group[], Error>>,
+  // otherQueryOptions?: OtherQueryOptions<UseQueryOptions<Group[], Error>>,
   onSuccess?: (groups: Group[]) => void
-): UseQueryResult<Group[], Error> => {
-  return useQuery<Group[]>({
-    queryKey: ["groupsForUser", userId],
-    queryFn: async () => {
-      // deplay 1 sec
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const response = await ChatHttpClient.get<Group[]>(
-        `${BASE_API_CALL}/groups/get-for-user`,
-        {
-          params: { IdentityId: userId },
-        }
-      );
-      if (onSuccess) onSuccess(response.data);
-      return response.data;
-    },
-    ...otherQueryOptions,
-  });
+) => {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const response = await ChatHttpClient.get<Group[]>(
+    `${BASE_API_CALL}/groups/get-for-user`,
+    {
+      params: { IdentityId: userId },
+    }
+  );
+  if (onSuccess) onSuccess(response.data);
+  return response.data;
 };
+
 // Fetch all groups
 const getAllGroups = () => {
   return useQuery({

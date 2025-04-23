@@ -22,7 +22,9 @@ import { useUserContext } from "@/context/useUserContext";
 import { Outlet, useNavigate } from "react-router";
 import MainButton from "@/components/buttons/MainButton";
 import { useAuth } from "react-oidc-context";
+import useUserGroupsStore from "@/store/useGroupStore";
 const { Content } = Layout;
+type MenuItem = Required<MenuProps>["items"][number];
 
 export type BaseLayoutProps = React.PropsWithChildren;
 
@@ -31,16 +33,17 @@ const BaseLayout = (params: BaseLayoutProps) => {
   renderCount.current += 1;
   console.log("BaseLayout render count:", renderCount.current);
 
-  const { UserGroups, setCurrentSelectGroupChat, User } = useUserContext();
-  const { signoutRedirect } = useAuth();
+  const { User } = useUserContext();
+  const { isLoading, error, userGroups, setCurrentSelectedGroup } =
+    useUserGroupsStore();
   const { useToken } = theme;
   const { token } = useToken();
   const navigate = useNavigate();
 
   const handleGroupClick = (groupId: string) => {
-    const group = UserGroups.data?.find((group) => group.Id === groupId);
+    const group = userGroups?.find((group) => group.Id === groupId);
     if (!group) return;
-    setCurrentSelectGroupChat(group);
+    setCurrentSelectedGroup(group);
     navigate(`/group/${group.Id}`);
   };
   return (
@@ -58,44 +61,38 @@ const BaseLayout = (params: BaseLayoutProps) => {
         >
           <Input placeholder="Filled" className="w-[90%] " />
         </div>
-        {UserGroups.isLoading && (
+        {isLoading && (
           <div className="w-full h-[80%] flex flex-col justify-center items-center">
             <LoadingSpinner className="p-4" />
           </div>
         )}
-        {!UserGroups.isLoading && !UserGroups.isError && (
-          <List
-            className="p-2"
-            itemLayout="horizontal"
-            dataSource={UserGroups.data}
-            renderItem={(item, index) => (
-              <List.Item
-                className=""
-                onClick={(_) => {
+        {!isLoading && !error && userGroups && (
+          <Menu
+            mode="inline"
+            items={userGroups.map((item): MenuItem => {
+              return {
+                key: item.Id,
+                icon: (
+                  <Avatar
+                    src={
+                      !item.ThumbDetail ? avatarBase : item.ThumbDetail.FileUrl
+                    }
+                  />
+                ),
+                label: item.Name,
+                onClick: () => {
                   handleGroupClick(item.Id);
-                }}
-              >
-                <List.Item.Meta
-                  avatar={
-                    <Avatar
-                      src={
-                        !item.ThumbDetail
-                          ? avatarBase
-                          : item.ThumbDetail.FileUrl
-                      }
-                    />
-                  }
-                  title={<a>{item.Name}</a>}
-                />
-              </List.Item>
-            )}
-          />
+                },
+                className: "", //min-h-14
+              };
+            })}
+          ></Menu>
         )}
-        {UserGroups.isError && (
+        {error && (
           <div className="w-full h-[80%] mx-auto">
             <ErrorOutline
               IconSize="medium"
-              Message={UserGroups.error?.message}
+              Message={error.message}
               className="w-full h-full"
             />
           </div>

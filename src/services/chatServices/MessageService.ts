@@ -48,13 +48,6 @@ const GetMessagesByGroup = async (
   );
   console.log(response.data);
   return response.data;
-
-  // return useQuery({
-  //   queryKey: ["messages", "paging", groupId, dateTimeCursor, take],
-  //   queryFn:
-  //   retry: false,
-  //   enabled: !!groupId, // Only fetch if groupId is provided
-  // });
 };
 const SendMessage = async (
   group: Group,

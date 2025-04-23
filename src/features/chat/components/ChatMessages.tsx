@@ -1,27 +1,30 @@
-import { Image, Space } from "antd";
-import React, { use, useEffect, useLayoutEffect, useRef } from "react";
+import { Space } from "antd";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { Message } from "../../../types/message/Message";
-import { MediaObject } from "@/types/shared/MediaObject";
 import ChatRow from "./ChatRow";
 import { useUserContext } from "@/context/useUserContext";
 import { useChatGroupContext } from "../context/useChatGroupContext";
-import { APP_CONFIG } from "@/config/appConfig";
 import { UN_EXISTING_USER } from "@/types/user/User";
-import { InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Group } from "@/types/group/Group";
-import InfiniteScroll from "react-infinite-scroll-component";
 
 import { GetMessagesByGroup } from "@/services/chatServices/MessageService";
 import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 import ErrorOutline from "@/components/errors/ErrorOutline";
 import { useInView } from "react-intersection-observer";
+import useChatGroupMessagesStore from "@/store/useChatGroupMessagesStore";
+import useGroupMessagesStore from "@/store/useGroupMessagesStore";
+import useSignalRStore from "@/store/useSignalRStore";
+import { ChatReceiverMethod } from "@/types/signalRmethods/ChatReceiver";
+import { invalid } from "moment";
 const ChatMessages = () => {
   const renderCount = useRef(0); // Track render count
-  renderCount.current += 1;
-  console.log("ChatMessages render count:", renderCount.current);
 
-  const { User, ChatGroups, setMessagesForGroup } = useUserContext();
+  const { User } = useUserContext();
+  // const { chatGroups, setChatGroups } = useChatGroupMessagesStore();
   const { currentGroupDetail } = useChatGroupContext();
+  const { messages, addMessage } = useGroupMessagesStore();
+  const { signalRConnection } = useSignalRStore();
   const { ref, inView, entry } = useInView({});
   const userParticipant = currentGroupDetail?.ParticipantsDetail.find(
     (p) => p.IdentityId === User!.data?.IdentityId
@@ -29,7 +32,6 @@ const ChatMessages = () => {
   const endRef = React.useRef<HTMLAnchorElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null); // Ref for the scroll container
   const hasScrolledToBottom = useRef(false); // Track if scroll to bottom has already occurred
-
   const fetchNextMessages = (group: Group) => {
     return useInfiniteQuery<Message[], Error>({
       queryKey: ["messages-from", group.Id],
@@ -38,49 +40,28 @@ const ChatMessages = () => {
         if (pageParam) {
           dateTimeCursor = pageParam as Date;
         }
-
         let result = await GetMessagesByGroup(group.Id, dateTimeCursor, 20); // Fetch messages
-        setMessagesForGroup(group, result); // Update the messages in the context
+        addMessage(result); // Update the messages in the context
         return result;
       },
       initialPageParam: new Date().toString(),
       getNextPageParam: (lastPage, pages) => {
-        const messages = ChatGroups[group.Id] || []; // Fallback to an empty array
-        const sortedMessages = [...messages].sort(
-          (first, second) =>
-            new Date(second.CreatedAt).getTime() -
-            new Date(first.CreatedAt).getTime()
-        );
-        let earliestMessage = sortedMessages.pop(); // Get the last message
+        // this messages is arleady sorteed by CreatedAt in the store
+        // order by latest at top
+        let clonedMessages = [...messages];
+        let earliestMessage = clonedMessages.pop(); // Get the last message
 
         if (lastPage.length <= 1) return undefined;
         return earliestMessage ? earliestMessage.CreatedAt : null;
       },
     });
   };
-
-  const {
-    data,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    status,
-    isFetchingNextPage,
-  } = fetchNextMessages(currentGroupDetail?.Group!);
-  const allMessages = ChatGroups[currentGroupDetail?.Group.Id!] || [];
-
-  useLayoutEffect(() => {
-    if (!hasScrolledToBottom.current && allMessages && allMessages.length > 0) {
-      endRef.current?.scrollIntoView({
-        behavior: "instant",
-      });
-      hasScrolledToBottom.current = true; // Mark as scrolled
-    }
-  }, [allMessages]);
+  const { error, fetchNextPage, hasNextPage, status, isFetchingNextPage } =
+    fetchNextMessages(currentGroupDetail?.Group!);
   useEffect(() => {
-    console.log(inView);
-    console.log(hasNextPage);
-    if (hasNextPage && inView) fetchNextPage();
+    if (hasNextPage && inView) {
+      fetchNextPage();
+    }
   }, [inView]);
   useEffect(() => {
     return () => {
@@ -93,12 +74,9 @@ const ChatMessages = () => {
       const container = containerRef.current;
       if (container) {
         const previousScrollHeight = container.scrollHeight;
-        const previousScrollTop = container.scrollTop;
-
-        const observer = new MutationObserver(() => {
+        const observer = new MutationObserver((mutationRecord) => {
           const newScrollHeight = container.scrollHeight;
-          container.scrollTop =
-            previousScrollTop + (newScrollHeight - previousScrollHeight);
+          container.scrollTop = newScrollHeight - previousScrollHeight;
           observer.disconnect();
         });
 
@@ -106,6 +84,40 @@ const ChatMessages = () => {
       }
     }
   }, [isFetchingNextPage]);
+  useEffect(() => {
+    if (signalRConnection) {
+      console.log("SignalR connection established");
+      signalRConnection.on(
+        ChatReceiverMethod.ReceiveGroupMessage,
+        (groupId: string, newMessages: Message[]) => {
+          if (currentGroupDetail?.Group.Id === groupId) {
+            addMessage(newMessages); // Update the messages in the context
+            if (true) {
+              //hasDetachFromBottom.current
+              endRef.current?.scrollIntoView({
+                behavior: "smooth",
+              });
+            }
+          }
+        }
+      );
+    }
+    endRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+    hasScrolledToBottom.current = true; // Mark as scrolled
+    return () => {
+      if (signalRConnection) {
+        signalRConnection.off(ChatReceiverMethod.ReceiveGroupMessage);
+      }
+      hasScrolledToBottom.current = false; // Reset scroll tracking on unmount
+    };
+  }, [signalRConnection]);
+  useEffect(() => {
+    return () => {
+      hasScrolledToBottom.current = false; // Reset scroll tracking on unmount
+    };
+  }, []);
   if (status === "pending") return <LoadingSpinner className="w-full h-full" />;
   if (status === "error") {
     return (
@@ -116,25 +128,32 @@ const ChatMessages = () => {
       />
     );
   }
+
+  renderCount.current += 1;
+  console.log("ChatMessages render count:", renderCount.current);
   return (
     <div
       id="scrollableDiv"
       ref={containerRef}
       className="chat-messages-container-list w-full h-full overflow-y-scroll "
     >
-      <Space
-        direction="vertical"
-        size="middle"
-        className="w-full flex-col-reverse"
+      <div
+        // direction="vertical"
+        // size="middle"
+        className="w-full flex gap-4 flex-col-reverse relative"
       >
         {isFetchingNextPage && (
           <>
             <LoadingSpinner className="w-full h-fit" />
           </>
         )}
+        <a
+          id="endingref"
+          className="absolute bottom-50 w-full h-1 bg-slate-100"
+          ref={endRef}
+        />
 
-        <a ref={endRef} />
-        {allMessages?.map((message) => {
+        {messages?.map((message) => {
           if (message.SenderId != userParticipant?.Id) {
             let foundedParticipant =
               currentGroupDetail?.ParticipantsDetail.find(
@@ -159,7 +178,7 @@ const ChatMessages = () => {
             );
         })}
         <a ref={ref} />
-      </Space>
+      </div>
     </div>
   );
 };

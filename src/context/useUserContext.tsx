@@ -6,15 +6,16 @@ import {
   getUserDetailByToken,
 } from "@/services/chatServices/UserServices";
 import { Group } from "@/types/group/Group";
-import { useInfiniteQuery, useQueries } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueries, useQuery } from "@tanstack/react-query";
 import { useAuth } from "react-oidc-context";
 import { getSignalRConnection } from "@/utils/RealTimeConnection";
 import { useSecretContext } from "@/app/providers/SecretProvider";
 import { Message } from "@/types/message/Message";
-import moment from "moment";
-import { DATE_TIME_FORMAT } from "@/config/dateTimeFormat";
-import { GetMessagesByGroup } from "@/services/chatServices/MessageService";
 import { ChatReceiverMethod } from "@/types/signalRmethods/ChatReceiver";
+import useChatGroupMessagesStore from "@/store/useChatGroupMessagesStore";
+import { User } from "@/types/user/User";
+import useSignalRStore from "@/store/useSignalRStore";
+import useUserGroupsStore from "@/store/useGroupStore";
 
 const UserContext = createContext<UserContextType | null>(null);
 
@@ -33,59 +34,64 @@ export function UserContextProvider({
 }) {
   const { user, isAuthenticated } = useAuth();
   const { ApplicationConfig } = useSecretContext();
-  const [chatGroups, setChatGroups] = useState<Record<string, Message[]>>({});
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const { setChatGroups } = useChatGroupMessagesStore();
+  const { signalRConnection, initializeConnection } = useSignalRStore();
+  const { setError, setLoading, setUserGroups } = useUserGroupsStore();
+  // const signalRConnection = useMemo(() => {
+  //   if (!isAuthenticated) return null;
+  //   return getSignalRConnection(
+  //     ApplicationConfig.ChatHubConnectionUrl,
+  //     user?.access_token!
+  //   );
+  // }, [isAuthenticated]);
 
-  function updateChatGroups(
-    prev: Record<string, Message[]>,
-    groupId: string,
-    newMessages: Message[]
-  ): Record<string, Message[]> {
-    const prevMessages = prev[groupId] || [];
-    const uniqueMessages = new Map<string, Message>();
-    prevMessages.forEach((message) => uniqueMessages.set(message.Id, message));
-    newMessages.forEach((message) => uniqueMessages.set(message.Id, message));
-    const sortedMessages = Array.from(uniqueMessages.values()).sort(
-      (a, b) =>
-        new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime()
-    );
-    return { ...prev, [groupId]: sortedMessages };
-  }
-
-  const signalRConnection = useMemo(() => {
-    if (!isAuthenticated) return null;
-    return getSignalRConnection(
-      ApplicationConfig.ChatHubConnectionUrl,
-      user?.access_token!
-    );
-  }, [isAuthenticated]);
-
-  const getUserByIdTokenQuery = getUserDetailByToken(user?.id_token!, {
+  const getUserByIdTokenQuery = useQuery({
+    queryKey: ["userDetail"],
+    queryFn: async () => {
+      const response = await getUserDetailByToken(user?.id_token!);
+      return response;
+    },
     enabled: !!user,
   });
-  const getUserGroupQuery = getGroupsForUser(
-    getUserByIdTokenQuery.data?.IdentityId!,
-    {
-      enabled: !!getUserByIdTokenQuery.data,
+
+  const { data, status, error } = useQuery({
+    queryKey: ["groupsForUser", getUserByIdTokenQuery.data?.IdentityId],
+    queryFn: async () => {
+      const response = await getGroupsForUser(
+        getUserByIdTokenQuery.data?.IdentityId!
+      );
+      return response;
+    },
+    enabled: !!getUserByIdTokenQuery.data?.IdentityId,
+  });
+  useEffect(() => {
+    if (status === "success") {
+      setUserGroups(data);
+    } else if (status === "error") {
+      setError(error);
+    } else if (status === "pending") {
+      setLoading(true);
     }
-  );
-  if (getUserGroupQuery.data) {
-    getUserGroupQuery.data.forEach((group) => {
-      if (!chatGroups[group.Id]) {
-        chatGroups[group.Id] = [];
-      }
-    });
-  }
+  }, [status]);
+  useEffect(() => {
+    if (isAuthenticated && user)
+      initializeConnection(
+        ApplicationConfig.ChatHubConnectionUrl,
+        user?.access_token!
+      );
+    return () => {
+      signalRConnection?.stop().then(() => console.log("SignalR disconnected"));
+    };
+  }, [user]);
   useEffect(() => {
     if (isAuthenticated && signalRConnection) {
       signalRConnection.on(
-        ChatReceiverMethod.ReceiveGroupMessage,
-        (groupId: string, newMessages: Message[]) => {
-          // console.log(newMessages);
-          // console.log(groupId);
-          setChatGroups((prev) => updateChatGroups(prev, groupId, newMessages));
+        ChatReceiverMethod.ReceiveNewGroupMessage,
+        (groupId: string, newMessage: Message) => {
+          setChatGroups(groupId, newMessage);
         }
       );
+
       signalRConnection
         .start()
         .then(() => {
@@ -97,12 +103,9 @@ export function UserContextProvider({
         .catch((err) => console.error("SignalR connection error:", err));
     }
     return () => {
-      signalRConnection?.stop().then(() => console.log("SignalR disconnected"));
+      signalRConnection?.off(ChatReceiverMethod.ReceiveNewGroupMessage);
     };
   }, [isAuthenticated]);
-  useEffect(() => {
-    console.log(chatGroups);
-  }, [chatGroups]);
 
   if (!isAuthenticated) {
     return (
@@ -115,20 +118,11 @@ export function UserContextProvider({
             error: undefined,
           },
           IdentityId: "",
-          UserGroups: {
-            data: undefined,
-            isLoading: false,
-            isError: false,
-            error: undefined,
-          },
-          CurrentSelectGroupChat: undefined,
-          ChatGroups: {},
-          setCurrentSelectGroupChat: () => {},
-          setUser: () => {},
-          setUserGroups: () => {},
-          setMessagesForGroup: () => {},
-          // fetchNextMessages: () => {
-          //   throw new Error("fetchNextMessages is not implemented.");
+          // UserGroups: {
+          //   data: undefined,
+          //   isLoading: false,
+          //   isError: false,
+          //   error: undefined,
           // },
         }}
       >
@@ -147,32 +141,14 @@ export function UserContextProvider({
             error: getUserByIdTokenQuery.error,
           },
           IdentityId: getUserByIdTokenQuery!.data?.IdentityId!,
-          UserGroups: {
-            data: getUserGroupQuery.data,
-            isLoading: getUserGroupQuery.isLoading,
-            isError: getUserGroupQuery.isError,
-            error: getUserGroupQuery.error,
-          },
-          CurrentSelectGroupChat: selectedGroup,
+          // UserGroups: {
+          //   data: getUserGroupQuery.data,
+          //   isLoading: getUserGroupQuery.isLoading,
+          //   isError: getUserGroupQuery.isError,
+          //   error: getUserGroupQuery.error,
+          // },
+          // CurrentSelectGroupChat: selectedGroup,
           SignalRConnection: signalRConnection,
-          ChatGroups: chatGroups,
-          setCurrentSelectGroupChat: setSelectedGroup,
-          setUser: () => {
-            console.warn(
-              "setUser is not implemented because data is fetched dynamically."
-            );
-          },
-          setUserGroups: () => {
-            console.warn(
-              "setUserGroups is not implemented because data is fetched dynamically."
-            );
-          },
-          setMessagesForGroup: (group: Group, newMessages: Message[]) => {
-            if (!newMessages || newMessages.length === 0) return;
-            setChatGroups((prev) =>
-              updateChatGroups(prev, group.Id, newMessages)
-            );
-          },
         } as UserContextType
       }
     >

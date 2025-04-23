@@ -1,13 +1,11 @@
 import MyBreadCrumb from "@/components/breadCrumbs/MyBreadCrumb";
 import LoadingSpinner from "@/components/loaders/LoadingSpinner";
-import { DATE_TIME_FORMAT } from "@/config/dateTimeFormat";
-import { useUserContext } from "@/context/useUserContext";
 import Chat from "@/features/chat/Chat";
-import { getGroupDetails } from "@/services/chatServices/GroupServices";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router";
-import { FaGear } from "react-icons/fa6";
 import ChatDetail from "@/features/chat/components/ChatDetail";
+import { getGroupDetails } from "@/services/chatServices/GroupServices";
+import React, { useRef, useState } from "react";
+import { FaGear } from "react-icons/fa6";
+import { useParams } from "react-router";
 export interface ChatPageProps {
   GroupId?: string;
 }
@@ -17,10 +15,10 @@ const ChatPage = (params: ChatPageProps) => {
   renderCount.current += 1;
   console.log("ChatPage render count:", renderCount.current);
 
-  const { UserGroups } = useUserContext();
+  // const { userGroups } = useUserGroupsStore();
   const { groupId: paramGroupId, dateTimeFromLastMessage } = useParams();
   const groupId = params.GroupId || paramGroupId!;
-  const group = UserGroups.data?.find((group) => group.Id === groupId);
+  // const group = userGroups?.find((group) => group.Id === groupId);
   const { data, isLoading, isError } = getGroupDetails(groupId);
 
   const [isDetailOpen, setIsDetailOpen] = useState(false);

@@ -18,23 +18,14 @@ const getAllUsers = async () => {
 };
 
 // Fetch user details by ID
-const getUserDetailByToken = (
-  idToken: string,
-  otherQueryOptions?: OtherQueryOptions<UseQueryOptions<User, Error>>
-): UseQueryResult<User, Error> => {
-  return useQuery({
-    queryKey: [USER_DETAIL_KEY], // idToken ? idToken.substring(0, 20)
-    queryFn: async () => {
-      const response = await UserHttpClient.postForm<User>(
-        `${BASE_API_CALL}/user/check-id-token-exist-user`,
-        {
-          idToken: idToken,
-        }
-      );
-      return response.data;
-    },
-    ...otherQueryOptions,
-  });
+const getUserDetailByToken = async (idToken: string) => {
+  const response = await UserHttpClient.postForm<User>(
+    `${BASE_API_CALL}/user/check-id-token-exist-user`,
+    {
+      idToken: idToken,
+    }
+  );
+  return response.data;
 };
 const getUserDetailByIdentityId = (id: string): UseQueryResult<User, Error> => {
   return useQuery({
