@@ -7,7 +7,7 @@ import { MdEmojiEmotions } from "react-icons/md";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import TextArea from "antd/es/input/TextArea";
 import "./ChatBox.css"; // Import the CSS file for styles
-import { GetProp, Upload, UploadFile, UploadProps } from "antd";
+import { GetProp, theme, Upload, UploadFile, UploadProps } from "antd";
 import { APP_CONFIG } from "@/config/appConfig";
 import { useMutation } from "@tanstack/react-query";
 import { SendMessage } from "@/services/chatServices/MessageService";
@@ -26,6 +26,8 @@ const ChatBox = (params: ChatBoxProps) => {
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = React.useState(false);
   const [messageInput, setMessageInput] = React.useState("");
   const [fileList, setFileList] = React.useState<UploadFile[]>([]);
+  const { useToken } = theme;
+  const { token } = useToken();
   const currentParticipant = useMemo(() => {
     return currentGroupDetail?.ParticipantsDetail.find(
       (p) => p.IdentityId === User!.data?.IdentityId
@@ -105,7 +107,7 @@ const ChatBox = (params: ChatBoxProps) => {
   };
   //--typing-message-wrapper-height
   return (
-    <div className="w-full h-fit bg-white rounded-md flex flex-col justify-between p-3 ">
+    <div className="w-full h-fit  rounded-md flex flex-col justify-between p-3 ">
       <form onSubmit={handleFormSubmit}>
         <section className={`top ${fileList.length > 0 ? "block" : "hidden"}`}>
           <Upload

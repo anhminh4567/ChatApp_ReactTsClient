@@ -7,8 +7,11 @@ import AuthenticationProvider from "./providers/AuthenticationProvider";
 import ToastifyNotification from "@/components/notifications/ToastifyNotification";
 import { useAuth } from "react-oidc-context";
 import useSignalRStore from "@/store/useSignalRStore";
+import { useLocalSettingStore } from "@/store/useLocalSettingStore";
 // import "./App.css";
 function App() {
+  const { userSetting } = useLocalSettingStore();
+
   return (
     <>
       <AntdProvider>

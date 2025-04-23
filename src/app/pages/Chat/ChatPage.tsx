@@ -47,7 +47,7 @@ const ChatPage = (params: ChatPageProps) => {
                 />
               </div>
             </div>
-            <div className=" shadow-md bg-white rounded-md p-1 overflow-auto h-full">
+            <div className=" shadow-md  rounded-md p-1 overflow-auto h-full  min-h-[85%] ">
               <Chat.ChatMessages />
             </div>
             <div className=" message-typing-container">

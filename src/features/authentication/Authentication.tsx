@@ -1,4 +1,4 @@
-import { Checkbox, Form, Input, notification } from "antd";
+import { Checkbox, Form, Input, notification, theme } from "antd";
 import React, { useEffect } from "react";
 import { LoginRequestDto } from "./types/LoginRequestDto";
 import MainButton from "@/components/buttons/MainButton";
@@ -12,6 +12,7 @@ const Authentication = () => {
   // const [form] = Form.useForm<LoginRequestDto>();
   const oidcAuth = useAuth();
   const { AwsCognitoConfig } = useSecretContext();
+  const { token } = theme.useToken();
   // const [api, contextHolder] = notification.useNotification();
   const navigate = useNavigate();
   const signOutRedirect = () => {
@@ -49,7 +50,12 @@ const Authentication = () => {
 
   console.log("user is not authenticated", oidcAuth.isAuthenticated);
   return (
-    <div className=" w-full h-full flex flex-col justify-center items-center gap-4 bg-white p-4 rounded-lg ">
+    <div
+      className=" w-full h-full flex flex-col justify-center items-center gap-4 bg-white p-4 rounded-lg "
+      style={{
+        backgroundColor: token.colorBgElevated,
+      }}
+    >
       <img src={AppImage} className="w-10 h-10 md:w-14 md:h-14 rounded-full" />
       <div>
         {/* {contextHolder} */}

@@ -17,6 +17,8 @@ const ChatRow = () => {
 };
 
 const ChatRowParticipant = ({ Message, Sender }: ChatRowProps) => {
+  const { useToken } = theme;
+  const { token } = useToken();
   return (
     <div className="messageRow flex flex-row gap-2 justify-start ">
       <img
@@ -26,13 +28,25 @@ const ChatRowParticipant = ({ Message, Sender }: ChatRowProps) => {
       <div className="messageRow-content flex flex-col ml-3 max-w-[70%] shadow-md p-2 rounded-md">
         <div className="messageRow-header flex flex-row justify-start gap-5 align-middle">
           <p className="font-bold text-sm my-auto">{Sender.Name}</p>
-          <p className="text-xs text-gray-500 my-auto">
+          <p
+            className="text-xs text-gray-500 my-auto"
+            style={{
+              color: token.colorTextSecondary,
+            }}
+          >
             {DateTimeFormatter.parseToDateTimeFormat(
               Message.CreatedAt.toString()
             )}
           </p>
         </div>
-        <p className="text-messages text-sm text-gray-700">{Message.Content}</p>
+        <p
+          className="text-messages text-sm text-gray-700"
+          style={{
+            color: token.colorTextSecondary,
+          }}
+        >
+          {Message.Content}
+        </p>
         <section className="message-row-attachment flex flex-row gap-2 mt-2 flex-wrap">
           {Message.MessageAttachments.map((attachment) => {
             return (

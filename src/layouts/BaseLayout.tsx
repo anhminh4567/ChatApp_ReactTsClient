@@ -9,6 +9,7 @@ import {
   MenuProps,
   theme,
   theme as antdTheme,
+  Modal,
 } from "antd";
 
 import React, { Suspense, useEffect, useRef } from "react";
@@ -19,11 +20,13 @@ import avatarBase from "@/assets/avatarbase.jpg";
 import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 import ErrorOutline from "@/components/errors/ErrorOutline";
 import { useUserContext } from "@/context/useUserContext";
-import { Outlet, useNavigate } from "react-router";
+import { data, Outlet, useNavigate } from "react-router";
 import MainButton from "@/components/buttons/MainButton";
 import { useAuth } from "react-oidc-context";
 import useUserGroupsStore from "@/store/useGroupStore";
+import UserDetailModal from "@/features/userDetail/UserDetailModal";
 const { Content } = Layout;
+const { confirm } = Modal;
 type MenuItem = Required<MenuProps>["items"][number];
 
 export type BaseLayoutProps = React.PropsWithChildren;
@@ -39,12 +42,17 @@ const BaseLayout = (params: BaseLayoutProps) => {
   const { useToken } = theme;
   const { token } = useToken();
   const navigate = useNavigate();
-
+  const [isUserDetailModalOpen, setIsUserDetailIsModalOpen] =
+    React.useState<boolean>(false);
   const handleGroupClick = (groupId: string) => {
     const group = userGroups?.find((group) => group.Id === groupId);
     if (!group) return;
     setCurrentSelectedGroup(group);
     navigate(`/group/${group.Id}`);
+  };
+  const handleProfileClick = () => {
+    console.log("clicked");
+    setIsUserDetailIsModalOpen((prev) => !prev);
   };
   return (
     <Layout hasSider className="100vh">
@@ -100,12 +108,22 @@ const BaseLayout = (params: BaseLayoutProps) => {
       </FixedSideBar>
 
       <Layout className=" pt-0">
-        <FixedHeader className="shadow-md bg-white top-0 flex flex-row justify-between p-3 items-center">
-          <section className="end-section flex flex-row  align-middle  ">
+        <FixedHeader className="shadow-smtop-0 flex flex-row justify-between p-3 items-center">
+          <section className="end-section flex flex-row  align-middle gap-2 ">
             <img
               src={User?.data?.AvatarUri ?? avatarBase}
               className="object-contain w-12 h-12 rounded-full mt-auto mb-auto ms-2"
+              onClick={() => {
+                handleProfileClick();
+              }}
             />
+            <p>{User?.data?.Name}</p>
+            <UserDetailModal
+              isOpen={isUserDetailModalOpen}
+              onCloseClick={() => {
+                setIsUserDetailIsModalOpen(false);
+              }}
+            ></UserDetailModal>
           </section>
 
           <section className="middle-section"></section>

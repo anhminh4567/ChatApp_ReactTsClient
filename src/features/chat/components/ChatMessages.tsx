@@ -1,10 +1,10 @@
-import { Space } from "antd";
+import { Space, theme } from "antd";
 import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { Message } from "../../../types/message/Message";
 import ChatRow from "./ChatRow";
 import { useUserContext } from "@/context/useUserContext";
 import { useChatGroupContext } from "../context/useChatGroupContext";
-import { UN_EXISTING_USER } from "@/types/user/User";
+import { UN_EXISTING_USER, User } from "@/types/user/User";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Group } from "@/types/group/Group";
 
@@ -17,6 +17,7 @@ import useGroupMessagesStore from "@/store/useGroupMessagesStore";
 import useSignalRStore from "@/store/useSignalRStore";
 import { ChatReceiverMethod } from "@/types/signalRmethods/ChatReceiver";
 import { invalid } from "moment";
+import useToken from "antd/es/theme/useToken";
 const ChatMessages = () => {
   const renderCount = useRef(0); // Track render count
 
@@ -26,6 +27,9 @@ const ChatMessages = () => {
   const { messages, addMessage } = useGroupMessagesStore();
   const { signalRConnection } = useSignalRStore();
   const { ref, inView, entry } = useInView({});
+  const { useToken } = theme;
+  const { token } = useToken();
+
   const userParticipant = currentGroupDetail?.ParticipantsDetail.find(
     (p) => p.IdentityId === User!.data?.IdentityId
   );
@@ -135,13 +139,12 @@ const ChatMessages = () => {
     <div
       id="scrollableDiv"
       ref={containerRef}
+      style={{
+        backgroundColor: token.colorBgContainer,
+      }}
       className="chat-messages-container-list w-full h-full overflow-y-scroll "
     >
-      <div
-        // direction="vertical"
-        // size="middle"
-        className="w-full flex gap-4 flex-col-reverse relative"
-      >
+      <div className="w-full flex gap-4 flex-col-reverse relative ">
         {isFetchingNextPage && (
           <>
             <LoadingSpinner className="w-full h-fit" />
@@ -155,12 +158,18 @@ const ChatMessages = () => {
 
         {messages?.map((message) => {
           if (message.SenderId != userParticipant?.Id) {
-            let foundedParticipant =
-              currentGroupDetail?.ParticipantsDetail.find(
-                (p) => p.IdentityId === message.SenderId
-              );
-            if (!foundedParticipant)
+            let foundedParticipant: User | null = null;
+            let participant = currentGroupDetail?.Group.Participants.find(
+              (p) => {
+                p.UserId == message.SenderId;
+              }
+            );
+            if (!participant)
               foundedParticipant = UN_EXISTING_USER(message.SenderId);
+            else
+              foundedParticipant = currentGroupDetail?.ParticipantsDetail.find(
+                (p) => p.Id === participant.UserId
+              )!;
             return (
               <ChatRow.ParticipantVariant
                 key={message.Id}

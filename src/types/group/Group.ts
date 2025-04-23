@@ -2,6 +2,7 @@ import { Message } from "../message/Message";
 import { MediaObject } from "../shared/MediaObject";
 import { User } from "../user/User";
 import { GroupType } from "./GroupType";
+import { LastMessage } from "./LastMessage";
 import { Participant } from "./Participant";
 
 export interface Group {
@@ -15,4 +16,5 @@ export interface Group {
   ThumbDetail: MediaObject | null; // Assuming MediaObject is defined elsewhere
   Messages: Message[]; // Assuming Message is defined elsewhere
   Participants: Participant[]; // Assuming Participant is defined elsewhere
+  LastMessage: LastMessage | null; // Assuming LastMessage is defined elsewhere
 }
