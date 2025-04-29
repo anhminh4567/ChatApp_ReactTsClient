@@ -30,9 +30,8 @@ variables:
   envFileName: '.env'
   envProdFileName: '.env.production'
 stages:
- - stage: LoadENV
-   displayName: load environment file
-   isSkippable: false
+ - stage: BuilInstallArchive
+   displayName: build , install and archive
    jobs:
      - job: loadSecureFile
        displayName: load secure file
@@ -49,19 +48,13 @@ stages:
             secureFile: $(envProdFileName)   
         - script: |
             echo "Using .env configuration (default) from $(DownloadEnv.secureFilePath)"
-            copy "$(DownloadEnv.secureFilePath)" $(envFileName)
+            copy "$(DownloadEnv.secureFilePath)" "$(Build.SourcesDirectory)/$(envFileName)"
             if ${{ parameters.environment }} == "production" (
                echo "Using .env.production configuration from $(DownloadEnvProd.secureFilePath"
-               copy "$(DownloadEnvProd.secureFilePath)" $(envProdFileName)
+               copy "$(DownloadEnvProd.secureFilePath)" "$(Build.SourcesDirectory)/$(envProdFileName)"
             )
           displayName: 'Select .env file and copy to src'
-
-
- - stage: BuilInstallArchive
-   displayName: build , install and archive
-   isSkippable: true
-   dependsOn: [LoadENV]
-   jobs:
+          
      - job: build
        displayName: build and install dependency, node if not installed
        condition: eq( ${{ parameters.build }} ,'true')
@@ -78,8 +71,6 @@ stages:
             npm run build
           displayName: 'npm install and build'
           
-
-
      - job: archive
        displayName: archive file
        dependsOn: build
