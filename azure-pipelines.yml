@@ -16,11 +16,47 @@ parameters:
   - name: archive
     type: boolean
     default: true
+  - name: environment
+    type: string
+    default: production
+    values:    
+    - development
+    - staging
+    - production
 variables:
   buildPath : dist
   archiveName: chatreactts
   artifactName: artifactUI
+  envFileName: '.env'
+  envProdFileName: '.env.production'
 stages:
+ - stage: 
+   displayName: load environment file
+   isSkippable: false
+   jobs:
+     - job: loadSecureFile
+       displayName: load secure file
+       steps:
+        - task: DownloadSecureFile@1
+          displayName: Download .env
+          name: DownloadEnv
+          inputs:
+            secureFile: $(envFileName)
+        - task: DownloadSecureFile@1
+          displayName: Download .env.production
+          name: DownloadEnvProd
+          inputs:
+            secureFile: $(envProdFileName)   
+        - script: |
+            echo "Using .env configuration (default)"
+            copy "$(Agent.TempDirectory)/$(envFileName)" $(envFileName)
+            if ${{ parameters.environment }} == "production" (
+               echo "Using .env.production configuration"
+               copy "$(Agent.TempDirectory)/$(envProdFileName)" $(envProdFileName)
+            )
+          displayName: 'Select .env file and build'
+
+
  - stage:
    displayName: build , install and archive
    isSkippable: true
@@ -41,8 +77,12 @@ stages:
             npm install
             npm run build
           displayName: 'npm install and build'
+          
+
+
      - job: archive
        displayName: archive file
+       dependsOn: build
        condition: eq( ${{ parameters.archive }} ,'true')
        steps:
         - task: ArchiveFiles@2
