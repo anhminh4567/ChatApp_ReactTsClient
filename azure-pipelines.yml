@@ -47,13 +47,14 @@ stages:
           inputs:
             secureFile: $(envProdFileName)   
         - script: |
-            echo "Using .env configuration (default) from $(DownloadEnv.secureFilePath)"
-            copy "$(DownloadEnv.secureFilePath)" "$(Build.SourcesDirectory)/$(envFileName)"
-            if ${{ parameters.environment }} == "production" (
-               echo "Using .env.production configuration from $(DownloadEnvProd.secureFilePath"
-               copy "$(DownloadEnvProd.secureFilePath)" "$(Build.SourcesDirectory)/$(envProdFileName)"
-            )
+             echo "Using .env configuration (default) from $(Agent.TempDirectory)/$(envFileName)"
+              copy "$(Agent.TempDirectory)/$(envFileName)" "$(Build.SourcesDirectory)/.env"
+              if ${{ parameters.environment }} == "production" (
+                echo "Using .env.production configuration from $(Agent.TempDirectory)/$(envProdFileName)"
+                copy "$(Agent.TempDirectory)/$(envProdFileName)" "$(Build.SourcesDirectory)/.env"
+              )
           displayName: 'Select .env file and copy to src'
+
           
      - job: build
        displayName: build and install dependency, node if not installed
@@ -71,6 +72,8 @@ stages:
             npm install
             npm run build
           displayName: 'npm install and build'
+          workingDirectory: '$(Build.SourcesDirectory)'
+
           
      - job: archive
        displayName: archive file
