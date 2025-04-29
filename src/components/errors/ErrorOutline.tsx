@@ -10,7 +10,7 @@ const MEDIUM = "w-10 h-10";
 const LARGE = "w-14 h-14";
 const ErrorOutline = (param: ErrorOutlineProps) => {
   const { className, Message, IconSize, ...remainProps } = param;
-  let size = null;
+  let size = MEDIUM;
   switch (IconSize) {
     case "small":
       size = SMALL;

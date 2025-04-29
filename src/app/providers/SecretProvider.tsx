@@ -19,6 +19,7 @@ export function useSecretContext() {
   return context;
 }
 const SecretProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+  // console.log("Environment Variables:", import.meta.env);
   return (
     <>
       <SecretContext.Provider

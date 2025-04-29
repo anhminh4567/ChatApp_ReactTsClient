@@ -13,7 +13,7 @@ const DEFAULT_CONTENT: React.ReactElement = (
   </div>
 );
 const DEFAULT_PROPS: LoadingSpinnerProps = {
-  Content: null,
+  Content: undefined,
 };
 
 const LoadingSpinner = (props: LoadingSpinnerProps) => {
