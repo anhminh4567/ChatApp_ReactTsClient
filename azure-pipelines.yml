@@ -91,7 +91,7 @@ stages:
             rootFolderOrFile: '$(buildPath)'
             includeRootFolder: true
             archiveType: 'zip'
-            archiveFile: '$(Build.ArtifactStagingDirectory)\$(chatreactts).zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)\$(archiveName).zip'
             replaceExistingArchive: true
         # - task: CopyFiles@2  # Copy built files to staging directory
         #   displayName: 'Copy Built Files to Staging Directory'
@@ -105,4 +105,5 @@ stages:
             ArtifactName: 'artifactUI'
             publishLocation: 'Container'
             MaxArtifactSize: 1000000
+
           
