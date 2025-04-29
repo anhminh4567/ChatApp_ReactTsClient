@@ -7,15 +7,61 @@ trigger:
 - none
 
 pool:
-  name: default
+  name: Default
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '20.x'
-  displayName: 'Install Node.js'
+parameters:
+  - name: build
+    type: boolean
+    default: true
+  - name: archive
+    type: boolean
+    default: true
+variables:
+  buildPath : dist
+  archiveName: chatreactts
+  artifactName: artifactUI
+stages:
+ - stage:
+   displayName: build , install and archive
+   isSkippable: true
+   dependsOn: []
+   jobs:
+     - job: build
+       displayName: build and install dependency, node if not installed
+       condition: eq( ${{ parameters.build }} ,'true')
+       steps:
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSource: 'spec'
+            versionSpec: '22.x'
+            retryCountOnDownloadFails: '3'
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+        - script: |
+            npm install
+            npm run build
+          displayName: 'npm install and build'
+     - job: archive
+       displayName: archive file
+       condition: eq( ${{ parameters.archive }} ,'true')
+       steps:
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(buildPath)'
+            includeRootFolder: true
+            archiveType: 'zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/$(chatreactts).zip'
+            replaceExistingArchive: true
+        # - task: CopyFiles@2  # Copy built files to staging directory
+        #   displayName: 'Copy Built Files to Staging Directory'
+        #   inputs:
+        #     sourceFolder: 'dist'  # Vite's default output folder. Adjust if you've customized the output directory.
+        #     targetFolder: '$(buildArtifactStagingDirectory)'
+
+        - task: PublishBuildArtifacts@1
+          inputs:
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+            ArtifactName: 'artifactUI'
+            publishLocation: 'Container'
+            MaxArtifactSize: 1000
+          
