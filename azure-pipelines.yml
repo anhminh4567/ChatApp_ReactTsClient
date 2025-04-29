@@ -7,15 +7,103 @@ trigger:
 - none
 
 pool:
-  name: default
+  name: Default
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '20.x'
-  displayName: 'Install Node.js'
+parameters:
+  - name: build
+    type: boolean
+    default: true
+  - name: archive
+    type: boolean
+    default: true
+  - name: environment
+    type: string
+    default: production
+    values:    
+    - development
+    - staging
+    - production
+variables:
+  buildPath : dist
+  archiveName: chatreactts
+  artifactName: artifactUI
+  envFileName: '.env'
+  envProdFileName: '.env.production'
+  maxSize: 1000000
+stages:
+ - stage: BuilInstallArchive
+   displayName: build , install and archive
+   jobs:
+     - job: loadSecureFile
+       displayName: load secure file
+       steps:
+        - task: DownloadSecureFile@1
+          displayName: Download .env
+          name: DownloadEnv
+          inputs:
+            secureFile: $(envFileName)
+        - task: DownloadSecureFile@1
+          displayName: Download .env.production
+          name: DownloadEnvProd
+          inputs:
+            secureFile: $(envProdFileName)   
+        - script: |
+             echo "Using .env configuration (default) from $(Agent.TempDirectory)\$(envFileName)"
+              copy "$(Agent.TempDirectory)\$(envFileName)" "$(Build.SourcesDirectory)\$(envFileName)"
+              if "${{ parameters.environment }}" == "production" (
+                echo "Using .env.production configuration from $(Agent.TempDirectory)\$(envProdFileName)"
+                copy "$(Agent.TempDirectory)\$(envProdFileName)" "$(Build.SourcesDirectory)\$(envProdFileName)"
+              )
+          displayName: 'Select .env file and copy to src'
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+          
+     - job: build
+       displayName: build and install dependency, node if not installed
+       condition: eq( ${{ parameters.build }} ,'true')
+       dependsOn: loadSecureFile
+       continueOnError: false
+       steps:
+        - checkout: none
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSource: 'spec'
+            versionSpec: '22.x'
+            retryCountOnDownloadFails: '2'
+        - script: |
+            npm install
+          displayName: 'npm install '
+          # workingDirectory: '$(Build.SourcesDirectory)'
+        - script: |
+            npm run build
+          displayName: 'npm run build'
+          # workingDirectory: '$(Build.SourcesDirectory)'
+          
+     - job: archive
+       continueOnError: false
+       displayName: archive file
+       dependsOn: build
+       condition: eq( ${{ parameters.archive }} ,'true')
+       steps:
+        - checkout: none
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(buildPath)'
+            includeRootFolder: true
+            archiveType: 'zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)\$(archiveName).zip'
+            replaceExistingArchive: true
+        # - task: CopyFiles@2  # Copy built files to staging directory
+        #   displayName: 'Copy Built Files to Staging Directory'
+        #   inputs:
+        #     sourceFolder: 'dist'  # Vite's default output folder. Adjust if you've customized the output directory.
+        #     targetFolder: '$(buildArtifactStagingDirectory)'
+
+        - task: PublishBuildArtifacts@1
+          inputs:
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+            ArtifactName: 'artifactUI'
+            publishLocation: 'Container'
+            MaxArtifactSize: 1000000
+
+          
