@@ -30,7 +30,7 @@ variables:
   envFileName: '.env'
   envProdFileName: '.env.production'
 stages:
- - stage: 
+ - stage: LoadENV
    displayName: load environment file
    isSkippable: false
    jobs:
@@ -57,10 +57,10 @@ stages:
           displayName: 'Select .env file and build'
 
 
- - stage:
+ - stage: BuilInstallArchive
    displayName: build , install and archive
    isSkippable: true
-   dependsOn: []
+   dependsOn: [LoadENV]
    jobs:
      - job: build
        displayName: build and install dependency, node if not installed
