@@ -48,13 +48,13 @@ stages:
           inputs:
             secureFile: $(envProdFileName)   
         - script: |
-            echo "Using .env configuration (default)"
-            copy "$(Agent.TempDirectory)/$(envFileName)" $(envFileName)
+            echo "Using .env configuration (default) from $(DownloadEnv.secureFilePath)"
+            copy "$(DownloadEnv.secureFilePath)" $(envFileName)
             if ${{ parameters.environment }} == "production" (
-               echo "Using .env.production configuration"
-               copy "$(Agent.TempDirectory)/$(envProdFileName)" $(envProdFileName)
+               echo "Using .env.production configuration from $(DownloadEnvProd.secureFilePath"
+               copy "$(DownloadEnvProd.secureFilePath)" $(envProdFileName)
             )
-          displayName: 'Select .env file and build'
+          displayName: 'Select .env file and copy to src'
 
 
  - stage: BuilInstallArchive
