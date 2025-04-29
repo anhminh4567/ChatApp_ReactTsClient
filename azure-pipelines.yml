@@ -62,19 +62,21 @@ stages:
        dependsOn: loadSecureFile
        continueOnError: false
        steps:
+        - checkout: none
         - task: NodeTool@0
           displayName: 'Install Node.js'
           inputs:
             versionSource: 'spec'
             versionSpec: '22.x'
-            retryCountOnDownloadFails: '3'
-
+            retryCountOnDownloadFails: '2'
         - script: |
             npm install
+          displayName: 'npm install '
+          # workingDirectory: '$(Build.SourcesDirectory)'
+        - script: |
             npm run build
-          displayName: 'npm install and build'
-          workingDirectory: '$(Build.SourcesDirectory)'
-
+          displayName: 'npm run build'
+          # workingDirectory: '$(Build.SourcesDirectory)'
           
      - job: archive
        continueOnError: false
@@ -82,6 +84,7 @@ stages:
        dependsOn: build
        condition: eq( ${{ parameters.archive }} ,'true')
        steps:
+        - checkout: none
         - task: ArchiveFiles@2
           inputs:
             rootFolderOrFile: '$(buildPath)'
