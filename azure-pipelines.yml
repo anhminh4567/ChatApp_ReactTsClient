@@ -49,7 +49,7 @@ stages:
         - script: |
              echo "Using .env configuration (default) from $(Agent.TempDirectory)/$(envFileName)"
               copy "$(Agent.TempDirectory)/$(envFileName)" "$(Build.SourcesDirectory)/.env"
-              if ${{ parameters.environment }} == "production" (
+              if "${{ parameters.environment }}" == "production" (
                 echo "Using .env.production configuration from $(Agent.TempDirectory)/$(envProdFileName)"
                 copy "$(Agent.TempDirectory)/$(envProdFileName)" "$(Build.SourcesDirectory)/.env"
               )
