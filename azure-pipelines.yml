@@ -29,6 +29,7 @@ variables:
   artifactName: artifactUI
   envFileName: '.env'
   envProdFileName: '.env.production'
+  maxSize: 1000000
 stages:
  - stage: BuilInstallArchive
    displayName: build , install and archive
@@ -103,5 +104,5 @@ stages:
             PathtoPublish: '$(Build.ArtifactStagingDirectory)'
             ArtifactName: 'artifactUI'
             publishLocation: 'Container'
-            MaxArtifactSize: 1000
+            MaxArtifactSize: 1000000
           
