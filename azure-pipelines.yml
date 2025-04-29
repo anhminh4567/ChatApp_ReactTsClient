@@ -47,11 +47,11 @@ stages:
           inputs:
             secureFile: $(envProdFileName)   
         - script: |
-             echo "Using .env configuration (default) from $(Agent.TempDirectory)/$(envFileName)"
-              copy "$(Agent.TempDirectory)/$(envFileName)" "$(Build.SourcesDirectory)/.env"
+             echo "Using .env configuration (default) from $(Agent.TempDirectory)\$(envFileName)"
+              copy "$(Agent.TempDirectory)\$(envFileName)" "$(Build.SourcesDirectory)\$(envFileName)"
               if "${{ parameters.environment }}" == "production" (
-                echo "Using .env.production configuration from $(Agent.TempDirectory)/$(envProdFileName)"
-                copy "$(Agent.TempDirectory)/$(envProdFileName)" "$(Build.SourcesDirectory)/.env"
+                echo "Using .env.production configuration from $(Agent.TempDirectory)\$(envProdFileName)"
+                copy "$(Agent.TempDirectory)\$(envProdFileName)" "$(Build.SourcesDirectory)\$(envProdFileName)"
               )
           displayName: 'Select .env file and copy to src'
 
@@ -60,6 +60,7 @@ stages:
        displayName: build and install dependency, node if not installed
        condition: eq( ${{ parameters.build }} ,'true')
        dependsOn: loadSecureFile
+       continueOnError: false
        steps:
         - task: NodeTool@0
           displayName: 'Install Node.js'
@@ -76,6 +77,7 @@ stages:
 
           
      - job: archive
+       continueOnError: false
        displayName: archive file
        dependsOn: build
        condition: eq( ${{ parameters.archive }} ,'true')
