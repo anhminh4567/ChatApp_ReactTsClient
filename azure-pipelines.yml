@@ -58,6 +58,7 @@ stages:
      - job: build
        displayName: build and install dependency, node if not installed
        condition: eq( ${{ parameters.build }} ,'true')
+       dependsOn: loadSecureFile
        steps:
         - task: NodeTool@0
           displayName: 'Install Node.js'
